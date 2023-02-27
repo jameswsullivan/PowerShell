@@ -46,3 +46,22 @@ ForEach ($SiteUrl in $SubsitesUrls) {
     $FileName += ".csv"
     Get-PnPList | Select-Object BaseType,Title,ParentWebUrl,DefaultViewUrl,Description,DocumentTemplateUrl,Id,Created,LastItemDeletedDate,LastItemModifiedDate,LastItemUserModifiedDate | Export-Csv $FileName
 }
+
+# Export a list of Document Library contents recursively.
+# Usage: GetSiteContents("Site_Url"), GetLibContents("Document_Library_Name")
+$UserName = "your_username"
+$Password = ConvertTo-SecureString "your_password" -AsPlainText -Force
+$Cred = New-Object -TypeName System.Management.Automation.PSCredential ($Username,$Password)
+
+function GetSiteContents($url) {
+    Connect-PnPOnline -URL $url -Credentials $Cred
+    Get-PnPList
+}
+
+function GetLibContents($name) {
+    $FileName = Get-PnPWeb | Select-Object -ExpandProperty Title
+    $FileName += " - "
+    $FileName += $name
+    $FileName += ".csv"
+    Get-PnPFolderItem -FolderSiteRelativeUrl $name -Recursive | Select-Object TypedObject,ItemCount,Name,ServerRelativeUrl,TimeCreated,TimeLastModified,UniqueId | Export-Csv -Path .\$FileName
+}
